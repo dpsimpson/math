@@ -69,25 +69,6 @@ inline void check_pos_definite(const char* function, const char* name,
 }
 
 /**
- * Check if the specified LDLT decomposition of a matrix is positive definite.
- *
- * @tparam Derived type of the Eigen::LDLT decomposition
- * @param function function name (for error messages)
- * @param name variable name (for error messages)
- * @param cholesky Eigen::LDLT to test, whose progenitor
- * must not have any NaN elements
- * @throw std::domain_error if the matrix is not positive definite
- */
-template <typename Derived>
-inline void check_pos_definite(const char* function, const char* name,
-                               const Eigen::LDLT<Derived>& cholesky) {
-  if (cholesky.info() != Eigen::Success || !cholesky.isPositive()
-      || !(cholesky.vectorD().array() > 0.0).all()) {
-    throw_domain_error(function, "LDLT decomposition of", " failed", name);
-  }
-}
-
-/**
  * Check if a sparse LLT decomposition of a matrix is positive definite.
  *
  * @tparam Derived type of the Eigen::SimplicalLLT decomposition

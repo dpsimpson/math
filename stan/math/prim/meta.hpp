@@ -88,6 +88,7 @@
 #include <stan/math/prim/meta/is_container.hpp>
 #include <stan/math/prim/meta/is_container_or_var_matrix.hpp>
 #include <stan/math/prim/meta/is_eigen.hpp>
+#include <stan/math/prim/meta/is_eigen_col_major.hpp>
 #include <stan/math/prim/meta/is_eigen_dense_base.hpp>
 #include <stan/math/prim/meta/is_eigen_dense_dynamic.hpp>
 #include <stan/math/prim/meta/is_eigen_matrix.hpp>

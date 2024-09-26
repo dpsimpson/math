@@ -34,12 +34,26 @@ using require_eigen_sparse_base_t
     = require_t<is_eigen_sparse_base<std::decay_t<T>>>;
 /*! @} */
 
+/*! \ingroup require_eigens_types */
+/*! \defgroup eigen_sparse_base_types eigen_sparse_base  */
+/*! \addtogroup eigen_sparse_base_types */
+/*! @{ */
+
+/*! \brief Require type does not satisfy @ref is_eigen_sparse_base */
+/*! @tparam T the type to check */
+template <typename T>
+using require_not_eigen_sparse_base_t
+    = require_not_t<is_eigen_sparse_base<std::decay_t<T>>>;
+/*! @} */
+
 /*! \brief Require all of the types satisfy @ref is_eigen_sparse_base */
 /*! @tparam Types The types that are checked */
 template <typename... Types>
 using require_all_eigen_sparse_base_t
     = require_all_t<is_eigen_sparse_base<std::decay_t<Types>>...>;
 /*! @} */
+
+
 
 }  // namespace stan
 
