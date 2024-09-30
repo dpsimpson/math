@@ -1,4 +1,5 @@
 #include <stan/math/rev.hpp>
+#include <test/unit/math/test_ad.hpp>
 #include <gtest/gtest.h>
 #include <test/unit/math/rev/util.hpp>
 #include <boost/random/mersenne_twister.hpp>

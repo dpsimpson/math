@@ -35,9 +35,9 @@ class arena_matrix<MatrixType, require_eigen_dense_base_t<MatrixType>>
    * @param cols number of columns
    */
   arena_matrix(Eigen::Index rows, Eigen::Index cols)
-      : Base::Map(
-          ChainableStack::instance_->memalloc_.alloc_array<Scalar>(rows * cols),
-          rows, cols) {}
+      : Base::Map(ChainableStack::instance_->memalloc_.alloc_array<Scalar>(
+                      rows * cols),
+                  rows, cols) {}
 
   /**
    * Constructs `arena_matrix` with given size. This only works if
@@ -46,8 +46,8 @@ class arena_matrix<MatrixType, require_eigen_dense_base_t<MatrixType>>
    */
   explicit arena_matrix(Eigen::Index size)
       : Base::Map(
-          ChainableStack::instance_->memalloc_.alloc_array<Scalar>(size),
-          size) {}
+            ChainableStack::instance_->memalloc_.alloc_array<Scalar>(size),
+            size) {}
 
  private:
   template <typename T>
@@ -235,13 +235,13 @@ class arena_matrix<MatrixType, require_eigen_sparse_base_t<MatrixType>>
   template <typename T, require_same_t<T, PlainObject>* = nullptr>
   arena_matrix(T&& other)  // NOLINT
       : Base::Map(
-          other.rows(), other.cols(), other.nonZeros(),
-          copy_vector(other.outerIndexPtr(), other.outerSize() + 1),
-          copy_vector(other.innerIndexPtr(), other.nonZeros()),
-          copy_vector(other.valuePtr(), other.nonZeros()),
-          copy_vector(
-              other.innerNonZeroPtr(),
-              other.innerNonZeroPtr() == nullptr ? 0 : other.innerSize())) {}
+            other.rows(), other.cols(), other.nonZeros(),
+            copy_vector(other.outerIndexPtr(), other.outerSize() + 1),
+            copy_vector(other.innerIndexPtr(), other.nonZeros()),
+            copy_vector(other.valuePtr(), other.nonZeros()),
+            copy_vector(
+                other.innerNonZeroPtr(),
+                other.innerNonZeroPtr() == nullptr ? 0 : other.innerSize())) {}
 
   /**
    * Constructs `arena_matrix` from an Eigen expression

@@ -45,8 +45,8 @@ cholesky_decompose(const EigMat& m) {
 /**
  * Return the sparse lower-triangular Cholesky factor (i.e., matrix
  * square root) of the specified sparse square, symmetric matrix.  The return
- * value is a tuple \f$(L, P)\f$, where \f$L\f$  a sparse lower-triangular matrix 
- * and \f$P\f$ is a permutation of \f$[1,\ldots,n]\f$ such that the
+ * value is a tuple \f$(L, P)\f$, where \f$L\f$  a sparse lower-triangular
+ * matrix and \f$P\f$ is a permutation of \f$[1,\ldots,n]\f$ such that the
  * original matrix \f$A\f$ is given by
  * <p>\f$A = P^TL  L^TP\f$,
  * where \f$P\f$ is the permutation matrix that has been computed to minimize
@@ -54,35 +54,33 @@ cholesky_decompose(const EigMat& m) {
  *
  * @tparam SpEigMat type of the matrix (must be derived from \c
  * Eigen::SparseMatrixBase)
- * @param m Sparse matrix. The matrix is assumed to be symmetric with its non-zero
- * elements stored in its lower triangle. Elements in the upper triangle of m will not
- * be read.
- * @return A tuple containing the Cholesky triangle of \f$PAP^T\f$ and the permutation
- * \f$P\f$ represented as a `std::vector<int>`. 
+ * @param m Sparse matrix. The matrix is assumed to be symmetric with its
+ * non-zero elements stored in its lower triangle. Elements in the upper
+ * triangle of m will not be read.
+ * @return A tuple containing the Cholesky triangle of \f$PAP^T\f$ and the
+ * permutation \f$P\f$ represented as a `std::vector<int>`.
  * @throw std::domain_error if m is not a symmetric matrix or
  *   if m is not positive definite (if m has more than 0 elements)
  */
-template <typename SpMat, 
-          require_eigen_sparse_base_t<SpMat>* = nullptr,
+template <typename SpMat, require_eigen_sparse_base_t<SpMat>* = nullptr,
           require_eigen_col_major_t<SpMat>* = nullptr,
           require_not_eigen_vt<is_var, SpMat>* = nullptr>
-inline  std::tuple<Eigen::SparseMatrix<value_type_t<SpMat>, Eigen::ColMajor>, 
-                   std::vector<int>>
- cholesky_decompose(const SpMat& m) {
-  using SpMatOut = Eigen::SparseMatrix<value_type_t<SpMat>, Eigen::ColMajor> ;
+inline std::tuple<plain_type_t<SpMat>, std::vector<int>> cholesky_decompose(
+    const SpMat& m) {
+  using SpMatOut = plain_type_t<SpMat>;
+
   const auto& m_eval = to_ref(m);
-  
+
   check_square("cholesky_decompose", "m", m_eval);
   check_not_nan("cholesky_decompose", "m", m_eval);
-  
+
   Eigen::SimplicialLLT<SpMatOut> llt(m_eval);
   check_pos_definite("cholesky_decompose", "m", llt);
-  
-  std::vector<int> perm(
-    llt.permutationP().indices().data(), 
-    llt.permutationP().indices().data() + llt.permutationP().indices().size()
-  );
-  
+
+  std::vector<int> perm(llt.permutationP().indices().data(),
+                        llt.permutationP().indices().data()
+                            + llt.permutationP().indices().size());
+
   return std::tuple<SpMatOut, std::vector<int>>(llt.matrixL(), perm);
 }
 

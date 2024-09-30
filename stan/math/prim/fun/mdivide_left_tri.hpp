@@ -51,7 +51,7 @@ inline auto mdivide_left_tri(const T1 &A, const T2 &b) {
  * @throws std::domain_error if A is not square
  */
 
-//Think aobut types
+// Think aobut types
 
 template <Eigen::UpLoType TriView, typename T, require_eigen_t<T> * = nullptr>
 inline plain_type_t<T> mdivide_left_tri(const T &A) {
@@ -65,40 +65,6 @@ inline plain_type_t<T> mdivide_left_tri(const T &A) {
   A.template triangularView<TriView>().solveInPlace(b);
   return b;
 }
-
-/**
- * Returns the solution of the system Ax=b when A is triangular.
- * This is specialized for Eigen solver types.
- *
- * @tparam TriView Specifies whether A is upper (Eigen::Upper)
- * or lower triangular (Eigen::Lower).
- * @tparam T2 type of the right-hand side matrix or vector
- *
- * @param A Triangular matrix.
- * @param b Right hand side matrix or vector.
- * @return x = A^-1 b, solution of the linear system.
- * @throws std::domain_error if A is not square or the rows of b don't
- * match the size of A.
- */
-template <Eigen::UpLoType TriView, Eigen::SimplicialLLT<Eigen::SparseMatrix<double>, 
-          typename T2,
-          require_eigen_t<T2> * = nullptr,
-          require_all_not_eigen_vt<is_var, T2> * = nullptr>
-inline auto mdivide_left_tri(const T1 &llt, const T2 &b) {
-  using T_return = double;// return_type_t<Eigen::SparseMatrix<double>, T2>;
-  using ret_type = Eigen::Matrix<T_return, Eigen::Dynamic, Eigen::Dynamic>;
-  
-  if (llt.matrixL().rows() == 0) {
-    return ret_type(0, b.cols());
-  }
-
-  if (TriView == Eigen::UpLoType.Lower) {
-    return llt.matrixL().solve(b).eval();
-  }
-
-  return llt.matrixU().solve(b).eval();
-}
-
 }  // namespace math
 }  // namespace stan
 

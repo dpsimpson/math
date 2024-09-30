@@ -8,6 +8,7 @@
 #include <stan/math/rev/fun/value_of.hpp>
 #include <stan/math/prim/fun/typedefs.hpp>
 #include <stan/math/prim/fun/cholesky_decompose.hpp>
+#include <stan/math/prim/fun/sparse_match_pattern.hpp>
 #include <stan/math/prim/err/check_pos_definite.hpp>
 #include <stan/math/prim/err/check_square.hpp>
 #include <stan/math/prim/err/check_symmetric.hpp>
@@ -176,6 +177,100 @@ inline auto cholesky_decompose(const T& A) {
     reverse_pass_callback(internal::cholesky_lambda(L.val(), L, A));
   }
   return L;
+}
+
+namespace internal {
+
+template <typename T1, typename T2>
+inline auto sparse_cholesky_lambda(T1& L, T2& A) {
+  return [L, A]() mutable {
+    // TODO: This is going to be an arena_matrix<Eigen::SparseMatrix<double>>
+    // which is a Eigen::Map type. Gotta make iterators!
+    using ColIter = typename decltype(L.val())::InnerIterator;
+    const int rows = L.val().rows();
+
+    for (int j = rows - 1; j >= 0; j--) {
+      ColIter LadjColJ(L.adj(), j);
+      ColIter LadjColJ_fast(L.adj(), j);
+      ColIter LvalColJ_fast(L.val(), j);
+      auto Ljj = LvalColJ_fast.value();
+      ++LadjColJ_fast;
+      ++LvalColJ_fast;
+      while (LadjColJ_fast) {
+        LadjColJ_fast /= Ljj;
+        LadjColJ.valueRef() -= LadjColJ_fast.value() * LvalColJ_fast.value();
+        ++LadjColJ_fast;
+        ++LvalColJ_fast;
+      }
+      LadjColJ.valueRef() /= Ljj;
+
+      for (int i = 0; i < j; ++i) {
+        ColIter LadjColI(L.adj(), i);
+        ColIter LadjColI_fast(L.adj(), i);
+        ColIter LvalColI_fast(L.val(), i);
+        ColIter LadjColJ_fast(L.adj(), j);
+
+        while (LadjColI && LadjColI.row() < j) {
+          ++LadjColI;
+          ++LadjColI_fast;
+          ++LvalColI_fast;
+        }
+        if (LadjColI.row() == j) {
+          auto Lji = LvalColI_fast.value();
+          LadjColI.valueRef() -= Lji * LadjColJ.value();
+
+          // Get them to (j+1)
+          ++LadjColI_fast;
+          ++LvalColI_fast;
+
+          while (LadjColI_fast) {
+            while (LadjColJ_fast.row() < LadjColI_fast.row()) {
+              // The non-zeros of L[:,j] is a superset of the non-zeros of
+              // L[:,i] for i < j, so this will skip over the zero
+              // multiplication. After this loop LadjColJ_fast.row()==
+              // LadjColI-faast.row()
+              ++LadjColJ_fast;
+            }
+            LadjColI.valueRef()
+                -= LadjColJ_fast.value() * LvalColI_fast.value();
+            LadjColI_fast.valueRef() -= Lji * LadjColJ.value();
+            ++LadjColI_fast;
+            ++LvalColI_fast;
+            ++LadjColJ_fast;
+          }
+        }
+      }
+      LadjColJ.valueRef() /= 2.0;
+    }
+    A.adj() += MatchPattern(L.adj(), A.adj())();
+  };
+}
+
+}  // namespace internal
+
+/**
+ * Reverse mode specialization of cholesky decomposition
+ *
+ * Internally calls Eigen::LLT rather than using
+ * stan::math::cholesky_decompose in order to use an inplace decomposition.
+ *
+ * Note chainable stack varis are created below in Matrix<var, -1, -1>
+ *
+ * @param A Matrix
+ * @return A tuple (L, P), where L is an var_value<Eigen::SparseMatrix>
+ * containing the cholesky factor of A and P is a std::vector<int> containing
+ * the permutation.
+ */
+template <typename T, require_var_sparse_base_t<T>* = nullptr>
+inline auto cholesky_decompose(const T& A) {
+  check_symmetric("cholesky_decompose", "A", A.val());
+  auto out = cholesky_decompose(A.val());
+
+  plain_type_t<T> L(std::get<0>(out));
+  std::vector<int> P = std::get<1>(out);
+
+  reverse_pass_callback(internal::sparse_cholesky_lambda(L, A));
+  return std::tuple<decltype(L), std::vector<int>>(L, P);
 }
 
 }  // namespace math

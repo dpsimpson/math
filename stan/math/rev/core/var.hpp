@@ -1179,8 +1179,33 @@ class var_value<T, internal::require_matrix_var_value<T>> {
    * @return this
    */
   inline var_value<T>& operator=(const var_value<T>& other) {
-    return operator=<T>(other);
+    return operator= <T>(other);
   }
+};
+
+/**
+ * A _bare bones_ specialization of `var_value` to sparse matrices.
+ * This will need to be extended in a variety of ways, but
+ * for the moment, this is enough to not get in the way elsewhere.
+ */
+
+template <>
+class var_value<Eigen::SparseMatrix<double>> {
+ public:
+  using value_type = Eigen::SparseMatrix<double>;  // type in vari_value.
+  using vari_type = vari_value<value_type>;
+  vari_type* vi_;
+
+  var_value(value_type&& x)
+      : vi_(new vari_type(std::forward<value_type>(x), false)) {}
+  var_value(const arena_matrix<value_type>& val,
+            const arena_matrix<value_type>& adj)
+      : vi_(new vari_type(val, adj)) {}
+
+  auto& adj() { return vi_->adj(); }
+  auto& adj() const { return vi_->adj(); }
+  auto& val() { return vi_->val(); }
+  auto& val() const { return vi_->val(); }
 };
 
 // For backwards compatability the default value is double

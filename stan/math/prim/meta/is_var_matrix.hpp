@@ -6,6 +6,7 @@
 #include <stan/math/prim/meta/is_var.hpp>
 #include <stan/math/prim/meta/is_eigen.hpp>
 #include <stan/math/prim/meta/is_vector.hpp>
+#include <stan/math/prim/meta/is_eigen_sparse_base.hpp>
 
 namespace stan {
 /**
@@ -149,6 +150,28 @@ using require_any_var_vector_t
 template <typename... Types>
 struct is_any_var_matrix
     : bool_constant<math::disjunction<is_var_matrix<Types>...>::value> {};
+
+/**
+ * Check if a type is a `var_value` whose `value_type` is derived from
+ * `Eigen::SparseMatrixBase`.
+ * @tparam T type to check.
+ * @ingroup type_trait
+ */
+template <typename T>
+struct is_var_sparse_base
+    : bool_constant<math::conjunction<
+          is_var<T>, is_eigen_sparse_base<value_type_t<T>>>::value> {};
+
+/*! \ingroup require_eigens_types */
+/*! \defgroup var_sparse_matrix_types var_sparse_matrix  */
+/*! \addtogroup var_sparse_matrix_types */
+/*! @{ */
+
+/*! \brief Require type satisfies @ref is `is_var_sparse_base` */
+/*! @tparam T the type to check */
+template <typename T>
+using require_var_sparse_base_t
+    = require_t<is_var_sparse_base<std::decay_t<T>>>;
 
 }  // namespace stan
 

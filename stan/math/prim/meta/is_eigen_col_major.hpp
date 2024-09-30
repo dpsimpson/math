@@ -9,7 +9,7 @@
 
 namespace stan {
 /**
- * Checks whether type T that is derived from Eigen::MatrixBase is in 
+ * Checks whether type T that is derived from Eigen::MatrixBase is in
  * column-major order.
  * If true this will have a static member function named value with a type
  * of true, else value is false.
@@ -19,8 +19,7 @@ namespace stan {
  * @ingroup type_trait
  */
 template <typename T, require_eigen_t<T>* = nullptr>
-struct is_eigen_col_major
-    : bool_constant<!T::IsRowMajor> {};
+struct is_eigen_col_major : bool_constant<!std::decay_t<T>::IsRowMajor> {};
 
 /*! \ingroup require_eigens_types */
 /*! \defgroup eigen_sparse_base_types eigen_sparse_base  */
@@ -34,6 +33,6 @@ using require_eigen_col_major_t
     = require_t<is_eigen_col_major<std::decay_t<T>>>;
 /*! @} */
 
-}
+}  // namespace stan
 
 #endif
