@@ -187,6 +187,8 @@ class arena_matrix<MatrixType, require_eigen_sparse_base_t<MatrixType>>
   using PlainObject = std::decay_t<MatrixType>;
   using StorageIndex = typename PlainObject::StorageIndex;
 
+  typedef typename Base::InnerIterator InnerIterator;
+
   /**
    * Default constructor.
    */

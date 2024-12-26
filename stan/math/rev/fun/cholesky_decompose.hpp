@@ -186,7 +186,8 @@ inline auto sparse_cholesky_lambda(T1& L, T2& A) {
   return [L, A]() mutable {
     // TODO: This is going to be an arena_matrix<Eigen::SparseMatrix<double>>
     // which is a Eigen::Map type. Gotta make iterators!
-    using ColIter = typename decltype(L.val())::InnerIterator;
+    using ColIter =
+        typename std::remove_reference_t<decltype(L.val())>::InnerIterator;
     const int rows = L.val().rows();
 
     for (int j = rows - 1; j >= 0; j--) {
@@ -197,7 +198,7 @@ inline auto sparse_cholesky_lambda(T1& L, T2& A) {
       ++LadjColJ_fast;
       ++LvalColJ_fast;
       while (LadjColJ_fast) {
-        LadjColJ_fast /= Ljj;
+        LadjColJ_fast.valueRef() /= Ljj;
         LadjColJ.valueRef() -= LadjColJ_fast.value() * LvalColJ_fast.value();
         ++LadjColJ_fast;
         ++LvalColJ_fast;

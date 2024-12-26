@@ -2,12 +2,11 @@
 #define STAN_MATH_PRIM_SPARSE_MATCH_PATTERN_HPP
 
 #include <stan/math/prim/fun/Eigen.hpp>
+#include <stan/math/prim/meta.hpp>
 
 namespace stan {
 namespace math {
 namespace internal {
-
-typedef Eigen::SparseMatrix<double>::StorageIndex StorageIndex;
 
 /*
 RAII functor class that returns a sparse matrix with the values of
@@ -16,9 +15,11 @@ NOTE: It is assumed that the non-zeros of pattern are a subset of
 the non-zeros of A. (ie  pattern[i,j] != 0 => A[i,j] !=0)
 */
 
-template <typename SpMat>
+template <typename SpMat, require_eigen_sparse_base_t<SpMat>* = nullptr>
 class MatchPattern {
   using T = typename SpMat::value_type;
+  using MatrixType = typename plain_type<SpMat>;
+  using StorageIndex = typename MatrixType::StorageIndex;
   StorageIndex* m_outer;
   StorageIndex* m_inner;
   T* m_val;
@@ -40,9 +41,9 @@ class MatchPattern {
 
     T* valptr = m_val;
     for (int j = 0; j < m_cols; ++j) {
-      typename SpMat::InnerIterator Acol(A, j);
-      for (typename SpMat::InnerIterator pattern_col(pattern, j); pattern_col;
-           ++pattern_col) {
+      typename MatrixType::InnerIterator Acol(A, j);
+      for (typename MatrixType::InnerIterator pattern_col(pattern, j);
+           pattern_col; ++pattern_col) {
         while (Acol && (Acol.row() < pattern_col.row())) {
           ++Acol;
         }
