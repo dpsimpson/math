@@ -18,7 +18,7 @@ the non-zeros of A. (ie  pattern[i,j] != 0 => A[i,j] !=0)
 template <typename SpMat, require_eigen_sparse_base_t<SpMat>* = nullptr>
 class MatchPattern {
   using T = typename SpMat::value_type;
-  using MatrixType = typename plain_type<SpMat>;
+  using MatrixType = typename stan::plain_type_t<SpMat>;
   using StorageIndex = typename MatrixType::StorageIndex;
   StorageIndex* m_outer;
   StorageIndex* m_inner;
@@ -41,8 +41,8 @@ class MatchPattern {
 
     T* valptr = m_val;
     for (int j = 0; j < m_cols; ++j) {
-      typename MatrixType::InnerIterator Acol(A, j);
-      for (typename MatrixType::InnerIterator pattern_col(pattern, j);
+      typename SpMat::InnerIterator Acol(A, j);
+      for (typename SpMat::InnerIterator pattern_col(pattern, j);
            pattern_col; ++pattern_col) {
         while (Acol && (Acol.row() < pattern_col.row())) {
           ++Acol;
